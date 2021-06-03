@@ -1,6 +1,6 @@
 #version 410 core
 
-layout (vertices = 3) out;
+layout (vertices = 4) out;
 
 uniform vec3 campos;
 in vec3 vertex_pos[];
@@ -16,13 +16,16 @@ void main(void)
     float dist = 1/length( cp - vertex_pos[gl_InvocationID]);
     //dist = pow(dist,5);
 
-    float tessfact = dist * 50;
-    tessfact = max(0,tessfact);
-    tessfact = 10;
+    float tessfact = dist * 100;
+    tessfact = max(150,tessfact);
+    //tessfact = 10;
+    //tessfact = 20;
     gl_TessLevelInner[0] = tessfact;
+    gl_TessLevelInner[1] = tessfact;
     gl_TessLevelOuter[0] = tessfact;
     gl_TessLevelOuter[1] = tessfact;
     gl_TessLevelOuter[2] = tessfact;
+    gl_TessLevelOuter[3] = tessfact;
     
     // Everybody copies their input to their output
     gl_out[gl_InvocationID].gl_Position =  gl_in[gl_InvocationID].gl_Position;

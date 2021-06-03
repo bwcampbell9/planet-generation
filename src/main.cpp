@@ -15,8 +15,9 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 // value_ptr for glm
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
-#define DRAW_LINES true
+#define DRAW_LINES false
 
 using namespace std;
 using namespace glm;
@@ -31,22 +32,75 @@ double get_last_elapsed_time()
 	lasttime = actualtime;
 	return difference;
 }
+class planet
+{
+public:
+	glm::vec3 pos, rot;
+	int w, a, s, d, shift;
+	float speedConst;
+	planet()
+	{
+		w = a = s = d = shift = 0;
+		rot = glm::vec3(0, 0, 0);
+		pos = glm::vec3(0, 0, 0);
+	}
+
+	glm::mat4 process(double ftime, float distFact)
+	{
+		//cout << distFact << "\n";
+
+		if (shift == 1) {
+			speedConst = 3;
+		}
+		else {
+			speedConst = 1;
+		}
+
+		speedConst *= distFact;
+
+		float speed = 0, elevation = 0, angle = 0, vJump = 0;
+		float xangle = 0;
+		if (w == 1)
+		{
+			xangle = speedConst * ftime;
+		}
+		else if (s == 1)
+		{
+			xangle = -speedConst * ftime;
+		}
+		float yangle = 0;
+		if (a == 1)
+			yangle = speedConst * ftime;
+		else if (d == 1)
+			yangle = -speedConst * ftime;
+
+		rot.y += yangle;
+		rot.x += xangle;
+
+		vec3 axis = cross(vec3(0, 0, 1), rot);
+
+		glm::mat4 T = glm::translate(glm::mat4(1), pos);
+		return T;
+	}
+};
+planet myplanet;
+
 class camera
 {
 public:
 	glm::vec3 pos, rot;
-	int w, a, s, d, q, e, up, down, shift, timeAdd, timeSub;
+	int q, e, up, down, shift, timeAdd, timeSub;
 	float speedConst;
 	camera()
 	{
-		w = a = s = d = q = e = up = down = shift = timeAdd = timeSub = 0;
+		q = e = up = down = shift = timeAdd = timeSub = 0;
 		speedConst = 5;
 		rot = glm::vec3(0, 0, 0);
 		pos = glm::vec3(0, 0, -10);
 	}
 	glm::mat4 process(double ftime, float distFact)
 	{
-		cout << distFact << "\n";
+		//cout << distFact << "\n";
 
 		if (shift == 1) {
 			speedConst = 50;
@@ -58,7 +112,7 @@ public:
 		speedConst *= distFact;
 
 		float speed = 0, elevation = 0, angle = 0, vJump = 0;
-		if (w == 1)
+		/*if (w == 1)
 		{
 			speed = speedConst * ftime;
 		}
@@ -70,7 +124,7 @@ public:
 		if (a == 1)
 			yangle = -3 * ftime;
 		else if (d == 1)
-			yangle = 3 * ftime;
+			yangle = 3 * ftime;*/
 
 		if (q == 1) {
 			elevation = speedConst * ftime;
@@ -79,7 +133,7 @@ public:
 			elevation = -speedConst * ftime;
 		}
 
-		rot.y += yangle;
+		//rot.y += yangle;
 		glm::mat4 R = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
 		glm::vec4 dir = glm::vec4(0, elevation, speed, 1);
 		dir = dir * R;
@@ -119,35 +173,35 @@ public:
 
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
 		{
-			mycam.w = 1;
+			myplanet.w = 1;
 		}
 		if (key == GLFW_KEY_W && action == GLFW_RELEASE)
 		{
-			mycam.w = 0;
+			myplanet.w = 0;
 		}
 		if (key == GLFW_KEY_S && action == GLFW_PRESS)
 		{
-			mycam.s = 1;
+			myplanet.s = 1;
 		}
 		if (key == GLFW_KEY_S && action == GLFW_RELEASE)
 		{
-			mycam.s = 0;
+			myplanet.s = 0;
 		}
 		if (key == GLFW_KEY_A && action == GLFW_PRESS)
 		{
-			mycam.a = 1;
+			myplanet.a = 1;
 		}
 		if (key == GLFW_KEY_A && action == GLFW_RELEASE)
 		{
-			mycam.a = 0;
+			myplanet.a = 0;
 		}
 		if (key == GLFW_KEY_D && action == GLFW_PRESS)
 		{
-			mycam.d = 1;
+			myplanet.d = 1;
 		}
 		if (key == GLFW_KEY_D && action == GLFW_RELEASE)
 		{
-			mycam.d = 0;
+			myplanet.d = 0;
 		}
 		if (key == GLFW_KEY_Q && action == GLFW_PRESS)
 		{
@@ -168,10 +222,12 @@ public:
 		if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_PRESS)
 		{
 			mycam.shift = 1;
+			myplanet.shift = 1;
 		}
 		if (key == GLFW_KEY_LEFT_SHIFT && action == GLFW_RELEASE)
 		{
 			mycam.shift = 0;
+			myplanet.shift = 0;
 		}
 
 		if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS)
@@ -283,15 +339,15 @@ public:
 
 		GLfloat cube_vertices[] = {
 			// front
-			-1.0, -1.0,  1.0,
-			1.0, -1.0,  1.0,
-			1.0,  1.0,  1.0,
-			-1.0,  1.0,  1.0,
+			1.0, 1.0,  1.0,
+			-1.0, 1.0,  1.0,
+			-1.0,  -1.0,  1.0,
+			1.0,  -1.0,  1.0,
 			// back
-			-1.0, -1.0, -1.0,
 			1.0, -1.0, -1.0,
-			1.0,  1.0, -1.0,
+			-1.0, -1.0, -1.0,
 			-1.0,  1.0, -1.0,
+			1.0,  1.0, -1.0,
 		};
 
 		//actually memcopy the data - only do this once
@@ -305,15 +361,15 @@ public:
 		//color
 		GLfloat cube_colors[] = {
 			// front colors
-			1.0, 0.0, 0.0,
-			0.0, 1.0, 0.0,
-			0.0, 0.0, 1.0,
 			1.0, 1.0, 1.0,
+			0.0, 1.0, 1.0,
+			0.0, 0.0, 1.0,
+			1.0, 0.0, 1.0,
 			// back colors
 			1.0, 0.0, 0.0,
+			0.0, 0.0, 0.0,
 			0.0, 1.0, 0.0,
-			0.0, 0.0, 1.0,
-			1.0, 1.0, 1.0,
+			1.0, 1.0, 0.0,
 		};
 		glGenBuffers(1, &VertexColorIDBox);
 		//set the current state to focus on our vertex buffer
@@ -326,24 +382,12 @@ public:
 		//set the current state to focus on our vertex buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferIDBox);
 		GLushort cube_elements[] = {
-			// front
-			0, 1, 2,
-			2, 3, 0,
-			// top
-			1, 5, 6,
-			6, 2, 1,
-			// back
-			7, 6, 5,
-			5, 4, 7,
-			// bottom
-			4, 0, 3,
-			3, 7, 4,
-			// left
-			4, 5, 1,
-			1, 0, 4,
-			// right
-			3, 2, 6,
-			6, 7, 3,
+			0, 1, 2, 3,     // Front face
+			7, 4, 5, 6,     // Back face
+			6, 5, 2, 1,     // Left face
+			7, 0, 3, 4,     // Right face
+			7, 6, 1, 0,     // Top face
+			3, 2, 5, 4,     // Bottom face
 		};
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements), cube_elements, GL_STATIC_DRAW);
 
@@ -379,6 +423,7 @@ public:
 		planetshader.addUniform("camoff");
 		planetshader.addUniform("campos");
 		planetshader.addUniform("InterpFract");
+		planetshader.addUniform("rotation");
 		planetshader.addAttribute("vertPos");
 		planetshader.addAttribute("vertColor");
 
@@ -496,10 +541,13 @@ public:
 		// Draw the planet -----------------------------------------------------------------
 		planetshader.bind();
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
+		//glEnable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
 
-		M = translate(mat4(1), vec3(0, 0, 0));
+		myplanet.process(frametime, distFact * .1);
+
+		M = mat4(1);
+
 		//
 
 		/* Arrays for use with glDrawElements.  This is the data for a cube with 6 different
@@ -517,9 +565,13 @@ public:
 			time = 1;
 		}
 		glUniform1f(planetshader.getUniform("InterpFract"), time);
+		mat4 Rx = rotate(mat4(1), myplanet.rot.x, { 1, 0, 0 });
+		mat4 Ry = rotate(mat4(1), myplanet.rot.y, { 0, 1, 0 });
+		mat4 R = Rx * Ry;
+		glUniformMatrix4fv(planetshader.getUniform("rotation"), 1, GL_FALSE, &R[0][0]);
 
-		glPatchParameteri(GL_PATCH_VERTICES, 3);
-		glDrawElements(GL_PATCHES, 36, GL_UNSIGNED_SHORT, (void*)0);
+		glPatchParameteri(GL_PATCH_VERTICES, 4);
+		glDrawElements(GL_PATCHES, 24, GL_UNSIGNED_SHORT, (void*)0);
 
 		glBindVertexArray(0);
 
