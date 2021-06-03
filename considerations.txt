@@ -1,0 +1,21 @@
+heightmap:
+
+water table:
+  - heightmap
+
+
+(very complicated)
+boime map:
+  - temp/temp range
+      - height (higher = colder)
+      - ocean currents
+      - distance from sea
+      - distance from equator
+      - wind
+         - sun position
+         - earth position (coreolis effect)
+  - precipitation
+      - height (more height = more precipitation)
+      - wind
+         - sun position
+         - earth position (coreolis effect)

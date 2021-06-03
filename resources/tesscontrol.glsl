@@ -18,7 +18,7 @@ void main(void)
 
     float tessfact = dist * 50;
     tessfact = max(0,tessfact);
-
+    tessfact = 10;
     gl_TessLevelInner[0] = tessfact;
     gl_TessLevelOuter[0] = tessfact;
     gl_TessLevelOuter[1] = tessfact;

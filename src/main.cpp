@@ -36,7 +36,7 @@ class camera
 public:
 	glm::vec3 pos, rot;
 	int w, a, s, d, q, e, up, down, shift, timeAdd, timeSub;
-	int speedConst;
+	float speedConst;
 	camera()
 	{
 		w = a = s = d = q = e = up = down = shift = timeAdd = timeSub = 0;
@@ -44,14 +44,18 @@ public:
 		rot = glm::vec3(0, 0, 0);
 		pos = glm::vec3(0, 0, -10);
 	}
-	glm::mat4 process(double ftime)
+	glm::mat4 process(double ftime, float distFact)
 	{
+		cout << distFact << "\n";
+
 		if (shift == 1) {
 			speedConst = 50;
 		}
 		else {
 			speedConst = 5;
 		}
+
+		speedConst *= distFact;
 
 		float speed = 0, elevation = 0, angle = 0, vJump = 0;
 		if (w == 1)
@@ -103,7 +107,8 @@ public:
 
 	GLuint VertexArrayID, VertexBufferID, VertexColorIDBox, IndexBufferIDBox;
 
-	float time = 1.0;
+	float time = 0.0;
+	bool morph = false;
 
 	void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 	{
@@ -203,6 +208,9 @@ public:
 		if (key == GLFW_KEY_DOWN && action == GLFW_RELEASE)
 		{
 			mycam.down = 0;
+		}
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+			morph = true;
 		}
 
 	}
@@ -350,7 +358,7 @@ public:
 		GLSL::checkVersion();
 
 		// Set background color.
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		// Enable z-buffer test.
 		glEnable(GL_DEPTH_TEST);
 
@@ -370,6 +378,7 @@ public:
 		planetshader.addUniform("M");
 		planetshader.addUniform("camoff");
 		planetshader.addUniform("campos");
+		planetshader.addUniform("InterpFract");
 		planetshader.addAttribute("vertPos");
 		planetshader.addAttribute("vertColor");
 
@@ -402,6 +411,9 @@ public:
 	void render()
 	{
 		double frametime = get_last_elapsed_time();
+		if (morph) {
+			time += frametime;
+		}
 		// Get current frame buffer size.
 		int width, height;
 		glfwGetFramebufferSize(windowManager->getHandle(), &width, &height);
@@ -414,7 +426,8 @@ public:
 		// Create the matrix stacks - please leave these alone for now
 
 		glm::mat4 V, M, P; //View, Model and Perspective matrix
-		V = mycam.process(frametime);
+		float distFact = distance(mycam.pos, vec3(0, 0, 0))-4;
+		V = mycam.process(frametime, distFact*.1);
 		M = glm::mat4(1);
 		// Apply orthographic projection....
 		P = glm::ortho(-1 * aspect, 1 * aspect, -1.0f, 1.0f, -2.0f, 100.0f);
@@ -500,6 +513,10 @@ public:
 		glUniformMatrix4fv(planetshader.getUniform("V"), 1, GL_FALSE, &V[0][0]);
 		//glUniform3fv(planetshader->getUniform("camoff"), 1, &offset[0]);
 		glUniform3fv(planetshader.getUniform("campos"), 1, &mycam.pos[0]);
+		if (time > 1) {
+			time = 1;
+		}
+		glUniform1f(planetshader.getUniform("InterpFract"), time);
 
 		glPatchParameteri(GL_PATCH_VERTICES, 3);
 		glDrawElements(GL_PATCHES, 36, GL_UNSIGNED_SHORT, (void*)0);
