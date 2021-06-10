@@ -17,7 +17,11 @@ CPE/CSC 471 Lab base code Wood/Dunn/Eckhardt
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#define PI 3.1415926536
+
 #define DRAW_LINES false
+
+#define RADIUS 4
 
 using namespace std;
 using namespace glm;
@@ -56,7 +60,7 @@ public:
 			speedConst = 1;
 		}
 
-		speedConst *= distFact;
+		speedConst *= pow(distFact, .5);
 
 		float speed = 0, elevation = 0, angle = 0, vJump = 0;
 		float xangle = 0;
@@ -89,12 +93,14 @@ class camera
 {
 public:
 	glm::vec3 pos, rot;
-	int q, e, up, down, shift, timeAdd, timeSub;
+	int in, out, q, e, up, down, left, right, shift, timeAdd, timeSub;
 	float speedConst;
+	float rotSpeed;
 	camera()
 	{
-		q = e = up = down = shift = timeAdd = timeSub = 0;
+		in = out = q = e = up = down = shift = timeAdd = timeSub = 0;
 		speedConst = 5;
+		rotSpeed = .01;
 		rot = glm::vec3(0, 0, 0);
 		pos = glm::vec3(0, 0, -10);
 	}
@@ -112,19 +118,32 @@ public:
 		speedConst *= distFact;
 
 		float speed = 0, elevation = 0, angle = 0, vJump = 0;
-		/*if (w == 1)
+		if (in == 1)
 		{
 			speed = speedConst * ftime;
 		}
-		else if (s == 1)
+		else if (out == 1)
 		{
 			speed = -speedConst * ftime;
 		}
-		float yangle = 0;
+		/*float yangle = 0;
 		if (a == 1)
 			yangle = -3 * ftime;
 		else if (d == 1)
 			yangle = 3 * ftime;*/
+
+		if (up == 1) {
+			rot.x += rotSpeed;
+		}
+		else if (down == 1) {
+			rot.x -= rotSpeed;
+		}
+		if (left == 1) {
+			rot.y += rotSpeed;
+		}
+		else if (right == 1) {
+			rot.y -= rotSpeed;
+		}
 
 		if (q == 1) {
 			elevation = speedConst * ftime;
@@ -133,15 +152,8 @@ public:
 			elevation = -speedConst * ftime;
 		}
 
-		//rot.y += yangle;
-		glm::mat4 R = glm::rotate(glm::mat4(1), rot.y, glm::vec3(0, 1, 0));
-		glm::vec4 dir = glm::vec4(0, elevation, speed, 1);
-		dir = dir * R;
-		pos += glm::vec3(dir.x, dir.y, dir.z);
-
-		glm::mat4 T = glm::translate(glm::mat4(1), pos);
-		glm::mat4 LD = glm::rotate(glm::mat4(1), angle, glm::vec3(cos(rot.x), 0, sin(rot.z)));
-		return LD * R * T;
+		pos.z += speed;
+		return glm::lookAt(pos, pos + vec3(cos(rot.x)*sin(rot.y), sin(rot.x), cos(rot.x) * cos(rot.y)), vec3(0, 1, 0));// vec3(sin(rot.x), sin(rot.y), 0), vec3(0, 1, 0));
 	}
 };
 camera mycam;
@@ -157,7 +169,7 @@ public:
 	Program planetshader;
 
 	//texture data
-	GLuint SkyTexture;
+	GLuint BiomeTexture;
 
 	GLuint VertexArrayID, VertexBufferID, VertexColorIDBox, IndexBufferIDBox;
 
@@ -265,6 +277,25 @@ public:
 		{
 			mycam.down = 0;
 		}
+		
+		if (key == GLFW_KEY_LEFT && action == GLFW_PRESS)
+		{
+			mycam.left = 1;
+		}
+		if (key == GLFW_KEY_LEFT && action == GLFW_RELEASE)
+		{
+			mycam.left = 0;
+		}
+
+		if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS)
+		{
+			mycam.right = 1;
+		}
+		if (key == GLFW_KEY_RIGHT && action == GLFW_RELEASE)
+		{
+			mycam.right = 0;
+		}
+
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
 			morph = true;
 		}
@@ -275,7 +306,18 @@ public:
 	// written
 	void mouseCallback(GLFWwindow *window, int button, int action, int mods)
 	{
-
+		if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+			mycam.in = 1;
+		}
+		if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
+			mycam.in = 0;
+		}
+		if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_PRESS) {
+			mycam.out = 1;
+		}
+		if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
+			mycam.out = 0;
+		}
 	}
 
 	//if the window is resized, capture the new size and reset the viewport
@@ -317,7 +359,20 @@ public:
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		//glGenerateMipmap(GL_TEXTURE_2D);
-
+		
+		// Biome Texture
+		str = resourceDirectory + "/biomes.png";
+		strcpy(filepath, str.c_str());
+		data = stbi_load(filepath, &width, &height, &channels, 4);
+		glGenTextures(1, &BiomeTexture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, BiomeTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 
 		//[TWOTEXTURES]
@@ -329,6 +384,11 @@ public:
 		//glUseProgram(progSky->pid);
 		//glUniform1i(SkyTextureLocation, 0);
 
+		GLuint BiomeTextureLocation;
+		BiomeTextureLocation = glGetUniformLocation(planetshader.pid, "biomeTex");
+		glUseProgram(planetshader.pid);
+		glUniform1i(BiomeTextureLocation, 0);
+
 		//generate the VAO
 		glGenVertexArrays(1, &VertexArrayID);
 		glBindVertexArray(VertexArrayID);
@@ -336,6 +396,22 @@ public:
 
 		glGenBuffers(1, &VertexBufferID);
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID);
+
+		//GLfloat cube_vertices[98 * 3];
+		//int i = 0;
+		//for (float x = 0; x <= 1; x += .25) {
+		//	for (float y = 0; y <= 1; y += .25) {
+		//		for (float z = 0; z <= 1; z += .25) {
+		//			if (abs(x) == 1 || abs(y) == 1 || abs(z) == 1) {
+		//				// a point
+		//				cube_vertices[i] = x;
+		//				cube_vertices[i+1] = y;
+		//				cube_vertices[i+2] = z;
+		//				i += 3;
+		//			}
+		//		}
+		//	}
+		//}
 
 		GLfloat cube_vertices[] = {
 			// front
@@ -358,29 +434,11 @@ public:
 		//key function to get up how many elements to pull out at a time (3)
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-		//color
-		GLfloat cube_colors[] = {
-			// front colors
-			1.0, 1.0, 1.0,
-			0.0, 1.0, 1.0,
-			0.0, 0.0, 1.0,
-			1.0, 0.0, 1.0,
-			// back colors
-			1.0, 0.0, 0.0,
-			0.0, 0.0, 0.0,
-			0.0, 1.0, 0.0,
-			1.0, 1.0, 0.0,
-		};
-		glGenBuffers(1, &VertexColorIDBox);
-		//set the current state to focus on our vertex buffer
-		glBindBuffer(GL_ARRAY_BUFFER, VertexColorIDBox);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cube_colors), cube_colors, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
 		glGenBuffers(1, &IndexBufferIDBox);
 		//set the current state to focus on our vertex buffer
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferIDBox);
+
+
 		GLushort cube_elements[] = {
 			0, 1, 2, 3,     // Front face
 			7, 4, 5, 6,     // Back face
@@ -471,7 +529,7 @@ public:
 		// Create the matrix stacks - please leave these alone for now
 
 		glm::mat4 V, M, P; //View, Model and Perspective matrix
-		float distFact = distance(mycam.pos, vec3(0, 0, 0))-4;
+		float distFact = distance(mycam.pos, vec3(0, 0, 0))-3;
 		V = mycam.process(frametime, distFact*.1);
 		M = glm::mat4(1);
 		// Apply orthographic projection....
@@ -555,6 +613,8 @@ public:
 		 */
 		glBindVertexArray(VertexArrayID);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBufferIDBox);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, BiomeTexture);
 
 		glUniformMatrix4fv(planetshader.getUniform("M"), 1, GL_FALSE, &M[0][0]);
 		glUniformMatrix4fv(planetshader.getUniform("P"), 1, GL_FALSE, &P[0][0]);

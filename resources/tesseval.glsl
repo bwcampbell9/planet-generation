@@ -17,6 +17,9 @@ uniform vec4 pParam;
 out vec3 v_normal;
 out vec3 v_pos;
 out float v_height;
+out float v_climate;
+out vec2 v_wind;
+out float v_precipitation;
 flat out int water;
 
 #define octaves 20
@@ -25,6 +28,7 @@ flat out int water;
 #define roughness 3
 #define persistence .5
 #define center vec3(0, 0, 0)
+#define PI 3.14159265
 
 float snoise(vec3 v, out vec3 grad);
 
@@ -54,6 +58,13 @@ float height(vec3 loc, out vec3 normal) {
     return noiseValue;
 }
 
+vec3 rotateY(vec3 v, float angle) {
+    return vec3(v.x*cos(angle)+v.z*sin(angle), v.y, -v.x*sin(angle) + v.z*cos(angle));
+}
+vec3 rotateZ(vec3 v, float angle) {
+    return vec3(v.x, v.y*cos(angle)-v.z*sin(angle), v.y*sin(angle) + v.z*cos(angle));
+}
+
 void main()
 {
 // interpolate in horizontal direction between vert. 0 and 3
@@ -63,13 +74,27 @@ void main()
     // interpolate in vert direction
     vec3 pos = mix(p0, p1, gl_TessCoord.y);
 
-    vec3 x = normalize(pos); 
+    vec3 x = normalize(pos);
+
     float r = 3;
     float s = 1;
     float base = .02;
     vec3 grad;
+    float hVal = height(x, grad);
+    vec3 p = x * r * (hVal + 1 - base);
 
-    vec3 p = x * r * (height(x, grad) + 1 - base);
+    // climate
+    v_climate = clamp(1 - pow(abs(x.y), .8) - hVal*3*pow(1-abs(x.y), 1), 0, 1);
+    
+    // wind
+    int spinDirection = 1; // 1 for west to east -1 for east to west
+    v_wind = vec2(spinDirection * -cos(((6*PI)/4) * abs(x.y)), (x.y > 0 ? -1 : 1) * .75*sin(2.4*PI*abs(x.y) - .3)-.25);
+
+    // Precipitation
+    vec3 grad2;
+    vec3 xPrecip = rotateZ(rotateY(x, v_wind.x*-.2), v_wind.y*.2);
+    float hValPrecip = height(xPrecip, grad);
+    v_precipitation = clamp(.6*clamp(pow(abs(v_wind.x), 1) + 1.3*(v_climate-.5), 0, 1) + .8*((hVal-hValPrecip)/baseAmplitude), 0, 1) * .9;
 
     //vec3 h =  grad - dot(grad, x) * x;
     //v_normal = x - s * h;
@@ -79,9 +104,13 @@ void main()
     if(v_height < r) {
         water = 1;
         gl_Position = P * V * rotation * vec4(x * r, 1);
+        // Cube
+        //gl_Position = P * V * rotation * vec4(pos, 1);
     } else {
         water = 0;
         gl_Position = P * V * rotation * vec4(p, 1);
+        // Cube
+        //gl_Position = P * V * rotation * vec4(pos, 1);
     }
 
     v_pos = convertPosition(gl_Position);

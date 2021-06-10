@@ -17,7 +17,7 @@ void main(void)
     //dist = pow(dist,5);
 
     float tessfact = dist * 100;
-    tessfact = max(150,tessfact);
+    tessfact = max(64, tessfact);
     //tessfact = 10;
     //tessfact = 20;
     gl_TessLevelInner[0] = tessfact;

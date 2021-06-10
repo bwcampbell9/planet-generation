@@ -37,7 +37,17 @@
     <ClInclude Include="WindowManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="planet_frag.glsl" />
+    <None Include="..\resources\height_frag.glsl" />
+    <None Include="..\resources\height_frag_o.glsl" />
+    <None Include="..\resources\height_vertex.glsl" />
+    <None Include="..\resources\height_vertex_o.glsl" />
+    <None Include="..\resources\planet_frag.glsl" />
+    <None Include="..\resources\planet_vertex.glsl" />
+    <None Include="..\resources\shader_fragment.glsl" />
+    <None Include="..\resources\shader_vertex.glsl" />
+    <None Include="..\resources\skyvertex.glsl" />
+    <None Include="..\resources\tesscontrol.glsl" />
+    <None Include="..\resources\tesseval.glsl" />
     <None Include="planet_vertex.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -112,11 +122,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Projects\School\471\OpenGL-Procedural-Terrain-master\Dependencies\glfw-3.3.4.bin.WIN32\include;D:\Projects\School\471\OpenGL-Procedural-Terrain-master\Dependencies\glm;D:\Projects\School\471\OpenGL-Procedural-Terrain-master\Dependencies\glew-2.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>glfw3.lib;glfw3dll.lib;glew32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\Projects\School\471\OpenGL-Procedural-Terrain-master\Dependencies\glew-2.1.0\lib\Release\Win32;D:\Projects\School\471\OpenGL-Procedural-Terrain-master\Dependencies\glfw-3.3.4.bin.WIN32\lib-vc2019;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

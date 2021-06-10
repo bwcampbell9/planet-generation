@@ -32,7 +32,37 @@
     <None Include="planet_vertex.glsl">
       <Filter>shaders</Filter>
     </None>
-    <None Include="planet_frag.glsl">
+    <None Include="..\resources\height_frag.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\height_frag_o.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\height_vertex.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\height_vertex_o.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\planet_frag.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\planet_vertex.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\shader_fragment.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\shader_vertex.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\skyvertex.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\tesscontrol.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\resources\tesseval.glsl">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
