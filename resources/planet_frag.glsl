@@ -13,7 +13,7 @@ uniform sampler2D biomeTex;
 void main()
 {
 	vec3 n = normalize(v_normal);
-	vec3 lp=vec3(-10,-10,-10);
+	vec3 lp=vec3(10,10,10);
 	vec3 ld = normalize(v_pos - lp);
 	float diffuse = dot(n,ld);
 
@@ -46,8 +46,7 @@ void main()
 		color = vec3(.184300001, .607800001, .929400001);
 	}
 
-
-	color = color * (diffuse *.6 + .4);
+	color = color * (diffuse *.5 + .5);
 
 	// Show climate
 	//color = vec3(v_climate, 0, 1-v_climate);

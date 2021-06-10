@@ -50,7 +50,7 @@ float height(vec3 loc, out vec3 normal) {
         
         noiseValue += v * amplitude;
         vec3 h =  grad - dot(grad, loc) * loc;
-        normal += loc - amplitude * h;
+        normal = normalize((loc - amplitude * h) + normal);
         frequency *= roughness;
         amplitude *= persistence;
      }
