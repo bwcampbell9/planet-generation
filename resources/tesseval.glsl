@@ -94,7 +94,7 @@ void main()
     vec3 grad2;
     vec3 xPrecip = rotateZ(rotateY(x, v_wind.x*-.2), v_wind.y*.2);
     float hValPrecip = height(xPrecip, grad);
-    v_precipitation = clamp(.6*clamp(pow(abs(v_wind.x), 1) + 1.3*(v_climate-.5), 0, 1) + .8*((hVal-hValPrecip)/baseAmplitude), 0, 1) * .9;
+    v_precipitation = clamp(.7*clamp(pow(abs(v_wind.x), 1) + 1.3*(v_climate-.5), 0, 1) + .8*((hVal-hValPrecip)/baseAmplitude), 0, 1) * .9;
 
     //vec3 h =  grad - dot(grad, x) * x;
     //v_normal = x - s * h;

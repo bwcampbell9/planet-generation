@@ -17,6 +17,9 @@ void main()
 	vec3 ld = normalize(v_pos - lp);
 	float diffuse = dot(n,ld);
 
+	// Biome Colors
+	color = texture(biomeTex, vec2(clamp(v_climate, 0.00001, 0.999999), clamp(v_precipitation, 0.00001, 0.999999))).xyz;
+
 	// Simple colors
 	/*color = vec3(.98, .99, 1);
 
@@ -31,9 +34,6 @@ void main()
 	if(v_height < 3.01) {
 		color = vec3(.941, .768, .47);
 	}*/
-
-	// Biome Colors
-	color = texture(biomeTex, vec2(clamp(v_climate, 0.00001, 0.999999), clamp(v_precipitation, 0.00001, 0.999999))).xyz;
 
 	if(v_height < 3) {
 		//float w_fac = (3 - v_height)/(.08);
